@@ -1,0 +1,6 @@
+inicio
+    leia(anna.lopes);
+    a = .500;
+    b = 0.4
+    escreva("resp: ", a);
+fim.

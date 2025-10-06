@@ -1,0 +1,10 @@
+inicio
+    leia("Entre com x: ", x);
+    leia("Entre com y: ", y);
+
+    a = x + y;
+    b = 2 * a;
+
+    escreva("O resultado de x + y é: ", a);
+    escreva("O resultado_de_b é: ", b);
+fim.

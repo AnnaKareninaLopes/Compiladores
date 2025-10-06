@@ -1,0 +1,9 @@
+char verifica(int n) {
+    if (n > 0) {
+        return 'P';
+    } else if (n == 0) {
+        return 'Z';
+    } else {
+        return 'N';
+    }
+}

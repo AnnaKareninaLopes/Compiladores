@@ -1,0 +1,15 @@
+// exemplo de programa na linguagem TOY
+
+inicio
+    leia("entre com x: ", x);
+    leia("entre com y: ", y);
+    a= 5 * x;
+    if ( a > 70)
+        b = 1;
+    else {
+        b = 2;
+        a = 3;
+    }
+    c = y * b;
+    escreva("res= ", c);
+fim.

@@ -1,0 +1,53 @@
+// Função auxiliar para converter Fahrenheit para Celsius
+float para_celsius(float f) {
+    float resultado;
+    resultado = (f - 32.0) * 5.0 / 9.0;
+    return resultado;
+}
+
+int main() {
+    int i;
+    int total_numeros;
+    float soma;
+    float media;
+    float temp_f;
+    char escolha;
+
+    // --- Parte 1: Calcular soma ou média de números ---
+
+    putchar(62); // Imprime o caractere '>' como um prompt (ASCII 62)
+    putint(0);   // Imprime "Quantos numeros voce vai digitar?" (usando int como código)
+    total_numeros = getint();
+
+    soma = 0.0;
+    i = 0;
+    while (i < total_numeros) {
+        putchar(62); // Imprime '>'
+        // A linha abaixo testa a atribuição de uma chamada de função (getfloat)
+        // para uma variável float, e a promoção de tipo de 'i' para a soma.
+        soma = soma + getfloat(); 
+        i = i + 1;
+    }
+
+    putchar(1); // Imprime "s para soma, m para media" (código)
+    escolha = getchar();
+
+    // Testa a comparação de 'char'
+    if (escolha == 's') {
+        putfloat(soma);
+    } else {
+        // Testa a operação entre float e int (soma / total_numeros)
+        media = soma / total_numeros;
+        putfloat(media);
+    }
+
+    // --- Parte 2: Testar a função de conversão de temperatura ---
+    
+    putchar(2); // Imprime "Teste de conversao"
+    temp_f = 68.0;
+    
+    // Testa a chamada de função com parâmetro float e retorno float
+    putfloat(para_celsius(temp_f)); // Deve imprimir 20.0
+
+    return 0;
+}

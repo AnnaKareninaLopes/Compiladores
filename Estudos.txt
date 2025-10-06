@@ -1,0 +1,7 @@
+| String     | `isalpha()` | `isdigit()` | `isalnum()` |
+| ---------- | ----------- | ----------- | ----------- |
+| `"abc"`    | ✅ True     | ❌ False    | ✅ True     |
+| `"123"`    | ❌ False    | ✅ True     | ✅ True     |
+| `"abc123"` | ❌ False    | ❌ False    | ✅ True     |
+| `"3.14"`   | ❌ False    | ❌ False    | ❌ False    |
+| `"_"`      | ❌ False    | ❌ False    | ❌ False    |

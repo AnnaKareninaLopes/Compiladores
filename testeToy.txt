@@ -1,0 +1,27 @@
+//
+// exemplo para testar o analisador lexico
+// da linguagem TOY
+//
+
+inicio
+    leia("entre com x: ", x);
+    leia("entre com y: ", y);
+    a= 5 * x;
+    if ( a>70)
+        b = 1;
+    else {
+        b = 2;
+        a = 3;
+    }
+    c = y * b;
+    escreva("res= ", c);
+fim.
+
+342.234jhsf  // Erro funcionou
+76<><=%#@ // Erro só no final, #@, funcionou
+11ab // Esse funcionou
+ab11.354 // Erro
+sjfds//skdjflfjs // Esse funcionou
+sjdfks/ /ajdak  // Esse funcionou
+..--++=<|&&!===  // Erro funcionou
+

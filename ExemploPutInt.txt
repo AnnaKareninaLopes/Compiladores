@@ -1,0 +1,57 @@
+// Função auxiliar para verificar se um número é primo
+// Retorna 1 se for primo, 0 caso contrário.
+int eh_primo(int n) {
+    int i;
+
+    if (n <= 1) {
+        return 0; // 1 e números menores não são primos
+    }
+
+    // Testa a divisibilidade a partir de 2
+    i = 2;
+    while (i * i <= n) {
+        if (n % i == 0) {
+            return 0; // Encontrou um divisor, não é primo
+        }
+        i = i + 1;
+    }
+
+    return 1; // Não encontrou divisores, é primo
+}
+
+
+int main() {
+    int limite;
+    int contador;
+    int contador_primos;
+    char letra;
+
+    putint(1); // Imprime um prompt inicial (usando putint pois não temos putstring)
+    limite = getint(); // Pede ao usuário para digitar um número limite
+
+    contador_primos = 0;
+    
+    // Laço 'for' para iterar de 1 até o limite
+    for (contador = 1; contador <= limite; contador = contador + 1) {
+
+        // Testa o comando 'continue'
+        if (contador == 4) {
+            continue; // Pula o número 4
+        }
+        
+        // Testa a chamada da função auxiliar
+        if (eh_primo(contador) == 1) {
+            putint(contador);
+            contador_primos = contador_primos + 1;
+        }
+
+        // Testa o comando 'break'
+        if (contador_primos > 5) {
+            putint(999); // Sinaliza que o break foi atingido
+            break; // Para o laço se encontrar mais de 5 primos
+        }
+    }
+
+    // Testa um comando 'return' válido
+    return contador_primos;
+}

@@ -1,0 +1,25 @@
+int main() {
+    int i, soma;
+    float media;
+    char letras[5];
+
+    soma = 0;
+    media = 0.0;
+
+    for (i = 0; i < 5; i = i +  1) {
+        if (i % 2 == 0) {
+            soma = soma + i;
+        } else {
+            soma = soma - 1;
+        }
+
+        while (soma < 10) {
+            soma = soma + 2;
+            if (soma > 8) {
+                break;
+            }
+        }
+    }
+
+    return soma;
+}

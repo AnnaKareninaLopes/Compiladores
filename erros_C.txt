@@ -1,0 +1,15 @@
+int main() {
+    int a;                // ❌ falta ponto e vírgula na declaração
+    a = 10;
+
+    if (a > 0) {            // ❌ if sem parênteses
+        return "ok";       // ❌ string sem aspas de fechamento
+    } else
+        return 1;       // ❌ falta ponto e vírgula no return
+
+    for (i = 0; i < 5; i = i + 1) {   // ❌ declaração no for não existe na tua gramática
+        continue;          // ❌ falta ponto e vírgula após continue
+    }
+
+    return 0;              // ❌ falta ponto e vírgula
+}

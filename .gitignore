@@ -1,0 +1,23 @@
+ # Arquivos de cache e compilados do Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Pasta do ambiente virtual
+.venv/
+venv/
+
+# Arquivos de configuração do editor/IDE (PyCharm, VSCode)
+.idea/
+.vscode/
+
+# Arquivos gerados pelo seu compilador
+saida.c
+saida.py
+meu_programa
+programa.exe
+
+# Arquivos de sistema operacional
+.DS_Store
+Thumbs.db
