@@ -289,7 +289,7 @@ class Lexico:
 
 
 if __name__ == '__main__':
-    lexico = Lexico("erros_C.txt")
+    lexico = Lexico("ExemploWalace_20-10-25.txt")
     token = lexico.getToken()
     while (token[0] != TOKEN.eof):
         lexico.imprimeToken(token)

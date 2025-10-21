@@ -1,7 +1,6 @@
 from ttokenC import TOKEN
 from lexicoC import Lexico
 from semanticoC import AnalisadorSemantico  # Importa o novo "cérebro"
-import traceback
 
 
 class Sintatico:
@@ -102,13 +101,18 @@ class Sintatico:
     def stmt(self):
         first_expr = {TOKEN.NOT, TOKEN.mais, TOKEN.menos, TOKEN.abrePar, TOKEN.valorInt, TOKEN.valorFloat,
                       TOKEN.valorChar, TOKEN.valorString, TOKEN.ident}
-        token_info = self.tokenLido
+
+        token_info = self.tokenLido;
         token = token_info[0]
 
         if token == TOKEN.FOR:
-            self.semantico.entrar_laco(); self.forStmt(); self.semantico.sair_laco()
+            self.semantico.entrar_laco();
+            self.forStmt();
+            self.semantico.sair_laco()
         elif token == TOKEN.WHILE:
-            self.semantico.entrar_laco(); self.whileStmt(); self.semantico.sair_laco()
+            self.semantico.entrar_laco();
+            self.whileStmt();
+            self.semantico.sair_laco()
         elif token == TOKEN.IF:
             self.ifStmt()
         elif token == TOKEN.abreChave:
@@ -116,17 +120,21 @@ class Sintatico:
         elif token in {TOKEN.INT, TOKEN.FLOAT, TOKEN.CHAR}:
             self.declaration()
         elif token == TOKEN.BREAK:
-            self.semantico.verificar_dentro_de_laco(token_info); self.consome(TOKEN.BREAK); self.consome(TOKEN.ptoVirg)
+            self.semantico.verificar_dentro_de_laco(token_info);
+            self.consome(TOKEN.BREAK);
+            self.consome(TOKEN.ptoVirg)
         elif token == TOKEN.CONTINUE:
-            self.semantico.verificar_dentro_de_laco(token_info); self.consome(TOKEN.CONTINUE); self.consome(
-                TOKEN.ptoVirg)
+            self.semantico.verificar_dentro_de_laco(token_info);
+            self.consome(TOKEN.CONTINUE);
+            self.consome(TOKEN.ptoVirg)
         elif token == TOKEN.RETURN:
             self.consome(TOKEN.RETURN)
-            tipo_expr = self.expr()
+            tipo_expr, _, _ = self.expr()
             self.semantico.verifica_retorno(tipo_expr, token_info)
             self.consome(TOKEN.ptoVirg)
         elif token in first_expr:
-            self.expr(); self.consome(TOKEN.ptoVirg)
+            self.expr();
+            self.consome(TOKEN.ptoVirg)
         else:
             self.consome(TOKEN.ptoVirg)
 
@@ -187,144 +195,217 @@ class Sintatico:
     def expr(self):
         return self.restoExpr(self.log())
 
-    def restoExpr(self, tipo_esquerdo):
+    def restoExpr(self, tipo_codigo_natureza_esquerdo):
+        # 1. Desempacota a tupla tripla que vem da expressão da esquerda.
+        tipo_esquerdo, codigo_esquerdo, natureza_esquerda = tipo_codigo_natureza_esquerdo
         if self.tokenLido[0] == TOKEN.atrib:
+            #    Verifica se a "natureza" do lado esquerdo permite atribuição.
+            if natureza_esquerda not in {'identificador', 'acesso_vetor'}:
+                raise Exception(
+                    f"Erro Semântico na linha {self.tokenLido[2]}: O lado esquerdo de uma atribuição deve ser uma variável ou um elemento de vetor (L-value).")
+
             op_token = self.tokenLido
             self.consome(TOKEN.atrib)
-            tipo_direito = self.expr()
-            self.semantico.validar_atribuicao(tipo_esquerdo, tipo_direito, op_token)
-            return self.restoExpr(tipo_esquerdo)
-        return tipo_esquerdo
+
+            # 3. A expressão da direita também retorna uma tupla tripla.
+            tipo_direito_tupla, codigo_direito, _ = self.expr() # Se não for aceitar a = b = c, coloca self.log()
+
+            # 4. A validação usa apenas a parte do TIPO de cada lado.
+            self.semantico.validar_atribuicao(tipo_esquerdo, tipo_direito_tupla, op_token)
+
+            # Gera o código para a atribuição
+            novo_codigo = f"{codigo_esquerdo} = {codigo_direito}"
+
+            # Continua a recursão para atribuições encadeadas (a = b = c)
+            # O resultado de uma atribuição é sempre um R-value ('expressao')
+            return self.restoExpr((tipo_esquerdo, novo_codigo, 'expressao'))
+
+        # Se não houver '=', apenas retorna a tupla original que recebeu.
+        return (tipo_esquerdo, codigo_esquerdo, natureza_esquerda)
 
     def log(self):
         return self.restoLog(self.nao())
 
-    def restoLog(self, tipo_esquerdo):
+    def restoLog(self, tipo_codigo_natureza_esquerdo):
+        tipo_esq, codigo_esq, nat_esq = tipo_codigo_natureza_esquerdo
         operador = self.tokenLido[0]
         if operador in {TOKEN.AND, TOKEN.OR}:
             op_token = self.tokenLido
             self.consome(operador)
-            tipo_direito = self.nao()
-            tipo_resultado = self.semantico.validar_operacao_binaria(tipo_esquerdo, operador, tipo_direito, op_token)
-            return self.restoLog(tipo_resultado)
-        return tipo_esquerdo
+            tipo_dir, codigo_dir, _ = self.nao()
+            tipo_resultado = self.semantico.validar_operacao_binaria(tipo_esq, operador, tipo_dir, op_token)
+            novo_codigo = f"({codigo_esq} {TOKEN.msg(operador)} {codigo_dir})"
+            return self.restoLog((tipo_resultado, novo_codigo, 'expressao'))
+        return (tipo_esq, codigo_esq, nat_esq)
 
     def nao(self):
         operador = self.tokenLido[0]
         if operador == TOKEN.NOT:
             op_token = self.tokenLido
             self.consome(operador)
-            tipo_operando = self.nao()
-            return self.semantico.validar_op_unaria(operador, tipo_operando, op_token)
+            tipo_operando, codigo_operando, _ = self.nao()
+            tipo_resultado = self.semantico.validar_operacao_unaria(operador, tipo_operando, op_token)
+            novo_codigo = f"(!{codigo_operando})"
+            return (tipo_resultado, novo_codigo, 'expressao')
         else:
             return self.rel()
 
     def rel(self):
         return self.restoRel(self.soma())
 
-    def restoRel(self, tipo_esquerdo):
+    def restoRel(self, tipo_codigo_natureza_esquerdo):
+        tipo_esq, codigo_esq, nat_esq = tipo_codigo_natureza_esquerdo
         operador = self.tokenLido[0]
         if operador in {TOKEN.igual, TOKEN.diferente, TOKEN.menor, TOKEN.menorIgual, TOKEN.maior, TOKEN.maiorIgual}:
             op_token = self.tokenLido
             self.consome(operador)
-            tipo_direito = self.soma()
-            tipo_resultado = self.semantico.validar_operacao_binaria(tipo_esquerdo, operador, tipo_direito, op_token)
-            return self.restoRel(tipo_resultado)
-        return tipo_esquerdo
+            tipo_dir, codigo_dir, _ = self.soma()
+            tipo_resultado = self.semantico.validar_operacao_binaria(tipo_esq, operador, tipo_dir, op_token)
+            novo_codigo = f"({codigo_esq} {TOKEN.msg(operador)} {codigo_dir})"
+            return self.restoRel((tipo_resultado, novo_codigo, 'expressao'))
+        return (tipo_esq, codigo_esq, nat_esq)
 
     def soma(self):
         return self.restoSoma(self.mult())
 
-    def restoSoma(self, tipo_esquerdo):
+    def restoSoma(self, tipo_codigo_natureza_esquerdo):
+        tipo_esq, codigo_esq, nat_esq = tipo_codigo_natureza_esquerdo
         operador = self.tokenLido[0]
         if operador in {TOKEN.mais, TOKEN.menos}:
             op_token = self.tokenLido
             self.consome(operador)
-            tipo_direito = self.mult()
-            tipo_resultado = self.semantico.validar_operacao_binaria(tipo_esquerdo, operador, tipo_direito, op_token)
-            return self.restoSoma(tipo_resultado)
-        return tipo_esquerdo
+            tipo_dir, codigo_dir, _ = self.mult()
+            tipo_resultado = self.semantico.validar_operacao_binaria(tipo_esq, operador, tipo_dir, op_token)
+            novo_codigo = f"({codigo_esq} {TOKEN.msg(operador)} {codigo_dir})"
+            return self.restoSoma((tipo_resultado, novo_codigo, 'expressao'))
+        return (tipo_esq, codigo_esq, nat_esq)
 
     def mult(self):
         return self.restoMult(self.uno())
 
-    def restoMult(self, tipo_esquerdo):
+    def restoMult(self, tipo_codigo_natureza_esquerdo):
+        tipo_esq, codigo_esq, nat_esq = tipo_codigo_natureza_esquerdo
         operador = self.tokenLido[0]
         if operador in {TOKEN.multiplica, TOKEN.divide, TOKEN.resto}:
             op_token = self.tokenLido
             self.consome(operador)
-            tipo_direito = self.uno()
-            tipo_resultado = self.semantico.validar_operacao_binaria(tipo_esquerdo, operador, tipo_direito, op_token)
-            return self.restoMult(tipo_resultado)
-        return tipo_esquerdo
+            tipo_dir, codigo_dir, _ = self.uno()
+            tipo_resultado = self.semantico.validar_operacao_binaria(tipo_esq, operador, tipo_dir, op_token)
+            novo_codigo = f"({codigo_esq} {TOKEN.msg(operador)} {codigo_dir})"
+            return self.restoMult((tipo_resultado, novo_codigo, 'expressao'))
+        return (tipo_esq, codigo_esq, nat_esq)
 
     def uno(self):
         operador = self.tokenLido[0]
         if operador in {TOKEN.menos, TOKEN.mais}:
             op_token = self.tokenLido
             self.consome(operador)
-            tipo_operando = self.uno()
-            return self.semantico.validar_operacao_unaria(operador, tipo_operando, op_token)
+            tipo_operando, codigo_operando, _ = self.uno()
+            tipo_resultado = self.semantico.validar_operacao_unaria(operador, tipo_operando, op_token)
+            novo_codigo = f"({TOKEN.msg(operador)}{codigo_operando})"
+            return (tipo_resultado, novo_codigo, 'expressao')
         else:
             return self.folha()
 
     def folha(self):
         token, lexema, linha, _ = self.tokenLido
         token_info = self.tokenLido
+
         if token == TOKEN.abrePar:
             self.consome(TOKEN.abrePar)
-            tipo_expr = self.expr()
+            tipo, codigo, _ = self.expr()
             self.consome(TOKEN.fechaPar)
-            return tipo_expr
+            return (tipo, f"({codigo})", 'expressao')
+
         elif token == TOKEN.ident:
             simbolo = self.semantico.verifica_identificador_declarado(lexema, token_info)
             self.consome(TOKEN.ident)
-            self.opcIdentifier(simbolo)
-            return (simbolo.sym_type, simbolo.is_array)
+            return self.opcIdentifier(simbolo)
+
         elif token == TOKEN.valorInt:
-            self.consome(TOKEN.valorInt); return (TOKEN.INT, False)
+            self.consome(TOKEN.valorInt);
+            return ((TOKEN.INT, False), lexema, 'literal')
+
         elif token == TOKEN.valorFloat:
-            self.consome(TOKEN.valorFloat); return (TOKEN.FLOAT, False)
+            self.consome(TOKEN.valorFloat);
+            return ((TOKEN.FLOAT, False), lexema, 'literal')
+
         elif token == TOKEN.valorChar:
-            self.consome(TOKEN.valorChar); return (TOKEN.CHAR, False)
+            self.consome(TOKEN.valorChar);
+            return ((TOKEN.CHAR, False), lexema, 'literal')
+
         else:
-            self.consome(TOKEN.valorString); return (TOKEN.CHAR, True)
+            self.consome(TOKEN.valorString);
+            return ((TOKEN.CHAR, True), lexema, 'literal')
 
     def opcIdentifier(self, symbol):
         token_info = self.tokenLido
         token = token_info[0]
+
+        # --- Caminho 1: Acesso a Vetor ---
         if token == TOKEN.abreColchete:
             if not symbol.is_array: raise Exception(
                 f"Erro Semântico na linha {token_info[2]}: '{symbol.name}' não é um vetor e não pode ser indexado.")
             self.consome(TOKEN.abreColchete)
-            tipo_indice = self.expr()
+            tipo_indice, codigo_indice, _ = self.expr()
             if tipo_indice != (TOKEN.INT, False): raise Exception(
                 f"Erro Semântico na linha {token_info[2]}: O índice de um vetor deve ser um inteiro.")
             self.consome(TOKEN.fechaColchete)
+
+            tipo_elemento = (symbol.sym_type, False)
+            codigo_acesso = f"{symbol.name}[{codigo_indice}]"
+            natureza = 'acesso_vetor' # L-value
+
+            return (tipo_elemento, codigo_acesso, natureza)
+
+        # --- Caminho 2: Chamada de Função ---
         elif token == TOKEN.abrePar:
             if symbol.category != 'funcao': raise Exception(
                 f"Erro Semântico na linha {token_info[2]}: '{symbol.name}' não é uma função e não pode ser chamada.")
+
             self.consome(TOKEN.abrePar)
-            self.params(symbol)
+            tipos_args, codigos_args = self.params(symbol)
+            self.semantico.validar_chamada_funcao(symbol, tipos_args, token_info)
             self.consome(TOKEN.fechaPar)
+
+            tipo_retorno = (symbol.sym_type, False)
+            codigo_chamada = f"{symbol.name}({', '.join(codigos_args)})"
+            natureza = 'expressao' # R-value
+
+            return (tipo_retorno, codigo_chamada, natureza)
+
+            # --- Caminho 3: Uso Simples da Variável ---
+        else:
+            tipo_variavel = (symbol.sym_type, symbol.is_array)
+            codigo_variavel = symbol.name
+            natureza = 'identificador'  # L-value
+
+            return (tipo_variavel, codigo_variavel, natureza)
 
     def params(self, func_symbol):
         first_expr = {TOKEN.NOT, TOKEN.mais, TOKEN.menos, TOKEN.abrePar, TOKEN.valorInt, TOKEN.valorFloat,
                       TOKEN.valorChar, TOKEN.valorString, TOKEN.ident}
-        args_passados = []
-        if self.tokenLido[0] in first_expr:
-            tipo_arg = self.expr()
-            args_passados.append(tipo_arg)
-            self.restoParams(args_passados)
 
-    def restoParams(self, args_passados):
+        tipos_passados = []
+        codigos_passados = []
+
+        if self.tokenLido[0] in first_expr:
+            tipo_arg, codigo_arg, _  = self.expr()
+            tipos_passados.append(tipo_arg)
+            codigos_passados.append(codigo_arg)
+            self.restoParams(tipos_passados, codigos_passados)
+
+        return tipos_passados, codigos_passados
+
+    def restoParams(self, tipos_passados, codigos_passados):
         if self.tokenLido[0] == TOKEN.virg:
             self.consome(TOKEN.virg)
-            tipo_arg = self.expr()
-            args_passados.append(tipo_arg)
-            self.restoParams(args_passados)
+            tipo_arg, codigo_arg, _ = self.expr()
+            tipos_passados.append(tipo_arg)
+            codigos_passados.append(codigo_arg)
+            self.restoParams(tipos_passados, codigos_passados)
 
 
 if __name__ == '__main__':
-    sintatico = Sintatico("ExemploPutGet.txt")
+    sintatico = Sintatico("ExemploWalace_20-10-25.txt")
     sintatico.traduz()

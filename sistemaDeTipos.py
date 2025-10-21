@@ -8,18 +8,22 @@ from ttokenC import TOKEN
  de uma única variável ou função. """
 class Symbol:
     def __init__(self, name, category, sym_type, is_array=False, params=None):
-        self.name = name
-        self.category = category
-        self.sym_type = sym_type
-        self.is_array = is_array
-        self.params = params if params is not None else []
+        self.name = name # Nome do identificador
+        self.category = category # Natureza do símbolo, variável ou função
+        self.sym_type = sym_type # Tipo do dado (TOKEN.INT, etc) ou retorno, se for função
+        self.is_array = is_array # Booleano, se é vetor ou não
+        self.params = params if params is not None else [] # Lista de parâmetros, se for função
 
     def __str__(self):
+        # Este metodo define o que será impresso ao usar print(objeto_symbol).
+
+        # Se o símbolo for uma função...
         if self.category == 'funcao':
+            # ...cria uma string formatada mostrando o tipo de retorno e o número de parâmetros.
             return f"Symbol(Name: {self.name}, Category: {self.category}, ReturnType: {TOKEN.msg(self.sym_type)}, Params: {len(self.params)})"
         else:
+            # ...para qualquer outro caso (como 'variavel'), cria uma string mostrando o tipo e se é um vetor.
             return f"Symbol(Name: {self.name}, Category: {self.category}, Type: {TOKEN.msg(self.sym_type)}, IsArray: {self.is_array})"
-
 
 """ 'fichário inteligente' que organiza todas as fichas (Symbol) em uma pilha de pastas
  que representam os escopos. """
