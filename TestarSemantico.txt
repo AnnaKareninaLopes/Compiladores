@@ -1,0 +1,72 @@
+// Arquivo de teste completo para o compilador Mini-C
+
+// Função auxiliar para testar declaração, parâmetros e retorno.
+int calcula_fatorial(int n) {
+    int i, resultado;
+
+    if (n < 0) {
+        return -1; // Código de erro para fatorial de negativo
+    }
+    
+    if (n == 0) {
+        return 1;
+    }
+    
+    resultado = 1;
+    for (i = 1; i <= n; i = i + 1) {
+        resultado = resultado * i;
+    }
+    return resultado;
+}
+
+
+int main() {
+    int numero_int;
+    float numero_float;
+    char comando;
+    char buffer[10]; // Teste de declaração de vetor
+
+    // Teste de I/O de char e uso de 'while'
+    // O programa fica em loop até o usuário digitar 'q' para sair.
+    while (1) {
+        putchar(62); // Imprime o caractere '>' como um prompt
+        comando = getchar();
+
+        // Testa if-else if-else e comparação com char
+        if (comando == 'q') {
+            break; // Testa o 'break' dentro de um laço
+        } 
+        else if (comando == 'f') {
+            // Testa I/O de int e chamada de função
+            putint(1); // Imprime um prompt para o fatorial
+            numero_int = getint();
+            putint(calcula_fatorial(numero_int));
+        }
+        else if (comando == 'a') {
+            // Testa I/O de float e aritmética com float
+            putint(2); // Imprime um prompt para a área
+            numero_float = getfloat();
+            putfloat(3.14 * numero_float * numero_float);
+        }
+        else if (comando == 't') {
+            // Testa promoção de tipo (char -> int) e continue
+            if ('C' - 'A' == 2) { // Teste de aritmética com char
+                putint(1); // Deve imprimir 1 (True)
+            }
+            continue; // Testa o 'continue'
+        }
+        else if (comando == 'v') {
+            // Testa acesso a vetor como L-value e R-value
+            buffer[0] = 'H';
+            buffer[1] = 'o';
+            buffer[2] = 'l';
+            buffer[3] = 'a';
+            buffer[4] = 0; // Caractere nulo para indicar fim (convenção C)
+            
+            putchar(buffer[0]); // Deve imprimir 'H'
+            putchar(buffer[1]); // Deve imprimir 'o'
+        }
+    }
+    
+    return 0; // Testa o retorno da função main
+}

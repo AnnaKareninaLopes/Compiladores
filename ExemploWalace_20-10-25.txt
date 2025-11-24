@@ -1,0 +1,22 @@
+int um(){
+	putchar('1');
+	return 1;
+}
+
+int dois(){
+	putchar('2');
+	return 2;
+}
+
+int tres(){
+	putchar('3');
+	return 3;
+}
+
+int main(){
+
+	int x;
+	x = um() + dois() + tres();
+	putint(x);
+	return 0;
+}

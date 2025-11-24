@@ -1,0 +1,12 @@
+int main () {
+
+int x;
+
+x = 10 + 3.5;
+
+float y;
+
+y = x + 2;
+
+return 0;
+}

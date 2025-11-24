@@ -407,5 +407,5 @@ class Sintatico:
 
 
 if __name__ == '__main__':
-    sintatico = Sintatico("ExemploWalace_20-10-25.txt")
+    sintatico = Sintatico("novoTeste.txt")
     sintatico.traduz()

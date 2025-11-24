@@ -1,6 +1,8 @@
 int main() {
-    int a;                // ❌ falta ponto e vírgula na declaração
-    a = 10;
+    int a;             // ❌ falta ponto e vírgula na declaração
+    int b;        // ❌ falta ponto e vírgula na declaração
+    b['x'] = 8;
+    5 = 'x';
 
     if (a > 0) {            // ❌ if sem parênteses
         return "ok";       // ❌ string sem aspas de fechamento
